@@ -1,0 +1,19 @@
+{
+  "name": "alfred/tasks-for-today",
+  "description": "Tasks for Today Management System",
+  "type": "project",
+  "require": {
+    "php": "^8.1",
+    "codeigniter4/framework": "^4.5"
+  },
+  "require-dev": {
+    "fakerphp/faker": "^1.23",
+    "phpunit/phpunit": "^10.5"
+  },
+  "autoload": {
+    "psr-4": { "App\\": "app/" }
+  },
+  "scripts": {
+    "serve": "php spark serve"
+  }
+}

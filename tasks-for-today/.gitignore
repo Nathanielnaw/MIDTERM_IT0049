@@ -1,0 +1,5 @@
+/vendor/
+/.env
+/writable/cache/*
+/writable/debugbar/*
+/writable/logs/*

@@ -1,0 +1,13 @@
+/vendor/
+.env
+. env
+.env.*
+!.env.example
+/build/
+/writable/*.sqlite*
+/writable/cache/*
+/writable/debugbar/*
+/writable/logs/*
+/writable/session/*
+!/writable/**/index.html
+!/writable/**/.gitkeep
