@@ -10,7 +10,7 @@ class Profile extends BaseController
     {
         return view('profile', [
             'title' => 'Profile',
-            'user' => (new UserModel())->demoUser(),
+            'user' => (new UserModel())->publicByUsername((string) session()->get('auth_user')['username']),
         ]);
     }
 }

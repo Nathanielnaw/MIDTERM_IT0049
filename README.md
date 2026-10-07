@@ -17,9 +17,11 @@ Install the locked dependencies with `composer install`.
 1. Start MySQL (for example, in XAMPP) and create an empty database:
    `CREATE DATABASE tasks_today CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;`
 2. Copy `.env.example` to `.env` and set your database credentials.
-3. Run `php spark migrate`.
-4. Run `php spark db:seed TasksTodaySeeder`.
-5. Run `php spark serve` and open <http://localhost:8080>.
+3. Set `TFA4_DEMO_PASSWORD` in `.env` to a local assessment password. Never
+   commit `.env` or share this password.
+4. Run `php spark migrate`.
+5. Run `php spark db:seed TasksTodaySeeder`.
+6. Run `php spark serve` and open <http://localhost:8080>.
 
 ### SQLite local setup
 
@@ -29,6 +31,7 @@ setup. To reproduce it, copy `.env.example` to `.env`, set
 `database.default.database = tasks-today.sqlite`, then run:
 
 ```powershell
+$env:TFA4_DEMO_PASSWORD = 'choose-a-local-password'
 php -d extension=sqlite3 spark migrate
 php -d extension=sqlite3 spark db:seed TasksTodaySeeder
 php -d extension=sqlite3 -S localhost:8080 -t public system/rewrite.php
@@ -43,6 +46,28 @@ For Apache, point the document root to **`public/`**, enable URL rewriting, and
 set `app.baseURL` in `.env` to the actual URL (with a trailing slash). Enable the
 chosen database extension in Apache's PHP configuration. Do not serve the project
 root, which contains private application files.
+
+## TFA4 authentication
+
+The repeatable `2026-10-07-000002_AddPasswordToExistingUsers` migration adds the
+`users.password` column to a TFA3 database. The seeder creates a password hash
+with PHP `password_hash()` for the demo user and repairs any existing user rows
+whose password is empty. It never stores or prints the password itself. Set a
+new `TFA4_DEMO_PASSWORD` before reseeding if local credentials need to change.
+
+The public pages are `/login` and `/about`. The current checkout has one
+user-account route, `/profile`, protected by the `auth` filter. `/logout` is a
+protected POST action and destroys the session. A failed login always displays
+the generic message “The username or password is incorrect.” On success the
+session ID is regenerated and only the user id, username, and display name are
+stored in the session. Requests to `/profile` preserve their original path and
+return there after login.
+
+To log in locally, use the username `demo.student` and the value you set for
+`TFA4_DEMO_PASSWORD`. Use the **Log out** POST control in the authenticated
+header. This credential is for local assessment use only; change it by updating
+`.env` and rerunning the seeder, or by adding a user through the project’s data
+layer with `password_hash()`.
 
 ## Pages and data flow
 
@@ -65,7 +90,10 @@ four today, two tomorrow, and two the following day. It fills an empty task tabl
 and creates a missing demo account independently, without overwriting existing
 records or duplicating data on reruns. Seeded dates stay fixed afterward; the
 Welcome page always follows the actual current day, so it may later be empty.
-No authentication or task editing is required by this four-page assessment.
+The TFA4 authentication workflow protects the existing user profile without
+altering the task listing, validation, or existing escaped views. This checkout
+does not contain the customer-account or user CRUD/avatar routes referenced by
+the supplied POS activity brief; no such routes were available to protect.
 
 ## Verification
 
@@ -73,6 +101,17 @@ No authentication or task editing is required by this four-page assessment.
 php -d extension=sqlite3 vendor/bin/phpunit --no-coverage
 php spark routes
 ```
+
+The test suite includes password hash/verification behavior, generic login
+failures, login redirect/session behavior, protected profile access, CSRF-aware
+logout routing, migration/seeder compatibility, and the existing TFA3 checks.
+
+## Assessment submission
+
+The student must still submit the GitHub repository URL and a separately hosted
+working application URL required by the activity. This implementation does not
+claim to publish or deploy either resource; hosting credentials and deployment
+authorization were not available in the workspace.
 
 Tests use an isolated in-memory SQLite database and cover the Manila midnight
 boundary, stable ordering, the single demo profile, repeatable seeding, empty

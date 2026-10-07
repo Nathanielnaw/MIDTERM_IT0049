@@ -17,6 +17,12 @@ final class TasksTodayTest extends CIUnitTestCase
 
     protected $namespace = 'App';
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        session()->set('auth_user', ['id' => 1, 'username' => 'demo.student', 'full_name' => 'Demo Student']);
+    }
+
     protected function tearDown(): void
     {
         Time::setTestNow();
@@ -74,7 +80,7 @@ final class TasksTodayTest extends CIUnitTestCase
     {
         (new UserModel())->insert(['username' => 'someone.else', 'full_name' => 'Another Person', 'email' => 'other@example.com', 'created_at' => '2026-01-01 00:00:00']);
         $this->seed(TasksTodaySeeder::class);
-        $result = $this->get('/profile');
+        $result = $this->withSession(['auth_user' => ['id' => 1, 'username' => 'demo.student', 'full_name' => 'Demo Student']])->get('/profile');
         $result->assertStatus(200);
         $result->assertSee('Demo Student');
         $result->assertSee('demo.student');
@@ -123,7 +129,7 @@ final class TasksTodayTest extends CIUnitTestCase
         $tasks = $this->get('/tasks');
         $tasks->assertStatus(200);
         $tasks->assertSee('No tasks have been added yet.');
-        $profile = $this->get('/profile');
+        $profile = $this->withSession(['auth_user' => ['id' => 1, 'username' => 'demo.student', 'full_name' => 'Demo Student']])->get('/profile');
         $profile->assertStatus(200);
         $profile->assertSee('No demo user found.');
     }

@@ -21,7 +21,7 @@
     <div class="sidebar-footer"><span class="tiny-dot" aria-hidden="true"></span> IT0049 · Assessment 1</div>
 </aside>
 <div class="workspace">
-    <header class="topbar"><span>My workspace <span class="breadcrumb">/</span> <strong><?= esc($title === 'Tasks for Today' ? 'Today' : $title) ?></strong></span><a class="account-link" href="<?= esc(site_url('profile'), 'attr') ?>">Demo account <span class="avatar avatar-small" aria-hidden="true">DS</span></a></header>
+    <header class="topbar"><span>My workspace <span class="breadcrumb">/</span> <strong><?= esc($title === 'Tasks for Today' ? 'Today' : $title) ?></strong></span><?php $authUser = session()->get('auth_user'); ?><?php if ($authUser !== null): ?><span class="account-link"><?= esc($authUser['full_name']) ?> <span class="avatar avatar-small" aria-hidden="true"><?= esc(mb_strtoupper(mb_substr($authUser['full_name'], 0, 1))) ?></span></span><form method="post" action="<?= esc(site_url('logout'), 'attr') ?>" class="logout-form"><?= csrf_field() ?><button type="submit">Log out</button></form><?php endif; ?></header>
     <main id="main" tabindex="-1"><?= $this->renderSection('content') ?></main>
     <footer class="page-footer"><span>Tasks for Today Management System</span><span>Built with CodeIgniter 4</span></footer>
 </div>

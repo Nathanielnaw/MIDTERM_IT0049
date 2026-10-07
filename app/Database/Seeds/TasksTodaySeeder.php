@@ -10,6 +10,11 @@ class TasksTodaySeeder extends Seeder
 {
     public function run()
     {
+        $demoPassword = (string) env('TFA4_DEMO_PASSWORD', ENVIRONMENT === 'testing' ? 'test-password' : '');
+        if ($demoPassword === '') {
+            throw new RuntimeException('Set TFA4_DEMO_PASSWORD before running TasksTodaySeeder.');
+        }
+
         $now = Time::now(config('App')->appTimezone);
         $createdAt = $now->format('Y-m-d H:i:s');
         $this->db->transStart();
@@ -20,8 +25,19 @@ class TasksTodaySeeder extends Seeder
                 'username' => 'demo.student',
                 'full_name' => 'Demo Student',
                 'email' => 'student@example.com',
+                'password' => password_hash($demoPassword, PASSWORD_DEFAULT),
                 'created_at' => $createdAt,
             ]);
+        }
+
+        // TFA3 accounts may predate the password column. Repair only accounts
+        // without a hash; existing credentials and profile data are preserved.
+        foreach ($this->db->table('users')->select('id, password')->get()->getResultArray() as $user) {
+            if (empty($user['password'])) {
+                $this->db->table('users')->where('id', $user['id'])->update([
+                    'password' => password_hash($demoPassword, PASSWORD_DEFAULT),
+                ]);
+            }
         }
 
         // Populate only an empty task table: reruns never duplicate or erase work.
