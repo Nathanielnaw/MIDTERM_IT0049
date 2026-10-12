@@ -9,9 +9,9 @@
 <body>
 <main class="login-page" id="main">
     <section class="panel login-panel" aria-labelledby="login-heading">
-        <p class="eyebrow">TASK MANAGEMENT</p>
+        <p class="eyebrow">STAFF LOGIN</p>
         <h1 id="login-heading">Who’s allowed in?</h1>
-        <p class="subtitle">Log in to create, edit, and archive tasks.</p>
+        <p class="subtitle">Log in to manage your store and tasks.</p>
         <?php if ($error !== null): ?><p class="form-error" role="alert"><?= esc($error) ?></p><?php endif; ?>
         <form method="post" action="<?= esc(site_url('login'), 'attr') ?>">
             <?= csrf_field() ?>

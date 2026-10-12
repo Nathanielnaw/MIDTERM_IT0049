@@ -9,12 +9,12 @@ class UserModel extends Model
     protected $table = 'users';
     protected $primaryKey = 'id';
     protected $returnType = 'array';
-    protected $allowedFields = ['username', 'full_name', 'email', 'password', 'created_at'];
+    protected $allowedFields = ['username', 'full_name', 'email', 'password', 'created_at', 'avatar', 'is_archived'];
 
     /** @return array<string, mixed>|null */
     public function findByUsername(string $username): ?array
     {
-        return $this->where('username', $username)->first();
+        return $this->where('is_archived', 0)->where('username', $username)->first();
     }
 
     /** @return array<string, mixed>|null */

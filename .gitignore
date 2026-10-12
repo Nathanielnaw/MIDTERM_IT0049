@@ -11,3 +11,7 @@
 /writable/session/*
 !/writable/**/index.html
 !/writable/**/.gitkeep
+
+/public/uploads/pos/*
+!/public/uploads/pos/.htaccess
+!/public/uploads/pos/index.html

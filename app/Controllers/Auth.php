@@ -58,7 +58,7 @@ class Auth extends BaseController
 
     private function safeRedirect(string $redirect): string
     {
-        return preg_match('~^/(?:tasks(?:/new|/[0-9]+/edit)?|profile)?$~D', $redirect) === 1
+        return preg_match('~^/(?:pos(?:/(?:sales|products|customers|staff)(?:/new|/[0-9]+/edit)?)?|tasks(?:/new|/[0-9]+/edit)?|profile)?$~D', $redirect) === 1
             ? $redirect
             : site_url('/');
     }

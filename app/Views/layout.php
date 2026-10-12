@@ -12,7 +12,7 @@
 <aside class="sidebar">
     <a class="brand" href="<?= esc(site_url('/'), 'attr') ?>"><span class="brand-mark" aria-hidden="true">✓</span><span>Tasks for Today<small>A little clarity for your day.</small></span></a>
     <p class="nav-label">YOUR WORKSPACE</p>
-    <nav aria-label="Main navigation">
+    <nav aria-label="Main navigation"><a href="<?= esc(site_url('pos'), 'attr') ?>">Point of Sale</a>
         <?php foreach ([['/', 'Tasks for Today', 'Today', '◷'], ['tasks', 'Task List', 'Task List', '≡'], ['profile', 'Profile', 'Profile', '○'], ['about', 'About', 'About', 'i']] as [$path, $pageTitle, $label, $icon]): ?>
             <a href="<?= esc(site_url($path), 'attr') ?>" <?= $title === $pageTitle ? 'aria-current="page"' : '' ?>><span class="nav-icon" aria-hidden="true"><?= esc($icon) ?></span><?= esc($label) ?><?php if ($title === $pageTitle): ?><span class="nav-dot" aria-hidden="true"></span><?php endif; ?></a>
         <?php endforeach; ?>
