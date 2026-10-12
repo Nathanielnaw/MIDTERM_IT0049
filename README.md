@@ -5,10 +5,6 @@ Developer(s):
 - Alfred Nathaniel Embuscado
 - Aiver Sam Santiago
 
-The POS lives at `/pos`, alongside the preserved TSA1/TFA4/TSA2 task application.
-The workspace contained the task application, not a prior POS implementation.
-Existing task pages and their routes remain available. All POS management pages
-require an active staff account; there is no public registration.
 
 ## Quick start
 
