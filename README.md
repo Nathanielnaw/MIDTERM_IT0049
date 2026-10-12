@@ -1,6 +1,9 @@
 # IT0049 Midterm — The Complete Point-of-Sale System
 
-Developer: **Alfred Nathaniel Embuscado**.
+Developer(s): 
+- Mark Keith Benipayo
+- Alfred Nathaniel Embuscado
+- Aiver Sam Santiago
 
 The POS lives at `/pos`, alongside the preserved TSA1/TFA4/TSA2 task application.
 The workspace contained the task application, not a prior POS implementation.
