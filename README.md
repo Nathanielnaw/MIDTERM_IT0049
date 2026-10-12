@@ -1,124 +1,153 @@
-# TSA1 - Tasks for Today Management System
+# TSA2 - Tasks for Today Management System
 
-IT0049 Technical Summative Assessment 1. Developer: **Alfred Nathaniel Embuscado**
-(the name retained from the existing project draft).
+IT0049 Technical Summative Assessment 2: Full CRUD and Authentication.
+Developer: **Alfred Nathaniel Embuscado**. Continues TSA1 and TFA4.
 
-The runnable application is at this workspace root. The earlier `tasks-for-today/`
-draft is preserved; run the commands below from the root, not that subdirectory.
-This project uses the existing bundled CodeIgniter 4.7.4 framework in `system/`.
+The runnable application is at the repository root using the bundled CodeIgniter
+4.7.4 framework in `system/`. The earlier `tasks-for-today/` draft is preserved;
+do not run setup from that subdirectory.
 
-## Application setup
+## Prerequisites and setup
 
-Requires PHP 8.2+, Composer, `intl`, `mbstring`, and either `mysqli` or `sqlite3`.
-Install the locked dependencies with `composer install`.
-
-### MySQL / MariaDB
-
-1. Start MySQL (for example, in XAMPP) and create an empty database:
-   `CREATE DATABASE tasks_today CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;`
-2. Copy `.env.example` to `.env` and set your database credentials.
-3. Set `TFA4_DEMO_PASSWORD` in `.env` to a local assessment password. Never
-   commit `.env` or share this password.
-4. Run `php spark migrate`.
-5. Run `php spark db:seed TasksTodaySeeder`.
-6. Run `php spark serve` and open <http://localhost:8080>.
-
-### SQLite local setup
-
-The local `.env` is configured for SQLite because MySQL was not running during
-setup. To reproduce it, copy `.env.example` to `.env`, set
-`database.default.DBDriver = SQLite3` and
-`database.default.database = tasks-today.sqlite`, then run:
+Use PHP 8.2+, Composer, `intl`, `mbstring`, and `mysqli` (MySQL/MariaDB) or
+`sqlite3` (SQLite). Tests additionally need SQLite, DOM, and XML extensions.
+Run commands from the repository root:
 
 ```powershell
-$env:TFA4_DEMO_PASSWORD = 'choose-a-local-password'
+composer install
+Copy-Item .env.example .env
+```
+
+Only copy the example for a new installation; preserve an existing `.env`.
+Set your local `.env` values, including `app.baseURL`, `app.appTimezone`,
+database credentials, and a private `TFA4_DEMO_PASSWORD`. The legacy variable
+name remains compatible with TFA4. The example deliberately contains no password.
+The login username is `demo.student`. Never commit `.env` or actual credentials.
+
+For MySQL/MariaDB, start the database service and create the database:
+
+```sql
+CREATE DATABASE tasks_today CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+Set `database.default.DBDriver = MySQLi` and the database name and credentials
+in `.env`, then run:
+
+```powershell
+php spark migrate
+php spark db:seed TasksTodaySeeder
+php spark serve
+```
+
+Open <http://localhost:8080>. For SQLite instead, set
+`database.default.DBDriver = SQLite3` and
+`database.default.database = tasks-today.sqlite` in `.env`. With XAMPP's SQLite
+extension installed but disabled, run:
+
+```powershell
 php -d extension=sqlite3 spark migrate
 php -d extension=sqlite3 spark db:seed TasksTodaySeeder
 php -d extension=sqlite3 -S localhost:8080 -t public system/rewrite.php
 ```
 
-Open <http://localhost:8080>. The database file is `writable/tasks-today.sqlite`.
-The `-d` flag enables XAMPP's installed SQLite extension for that process without
-editing the global PHP configuration. Omit the flag if SQLite is already enabled.
-If SQLite is enabled in php.ini, `php spark serve` also works.
+The relative SQLite database is stored in `writable/`. Omit `-d extension=sqlite3`
+when already enabled. The default application timezone is Asia/Manila.
+For Apache or hosting, serve **public/** as the document root, enable URL
+rewriting, and configure the actual base URL with a trailing slash. Set
+`CI_ENVIRONMENT = production` on a host and enable HTTPS.
 
-For Apache, point the document root to **`public/`**, enable URL rewriting, and
-set `app.baseURL` in `.env` to the actual URL (with a trailing slash). Enable the
-chosen database extension in Apache's PHP configuration. Do not serve the project
-root, which contains private application files.
+## Passwords and preserving existing data
 
-## TFA4 authentication
+Migrations add `users.password` and `tasks.is_archived` to earlier installations.
+Existing tasks remain active. The seeder inserts eight sample tasks only when
+the task table is empty, creates the missing demo account, and fills only the
+demo account's missing password hash. It preserves existing tasks, profiles,
+other accounts, and existing passwords. Sample dates are relative to the first
+seeding date and are not moved on subsequent runs.
 
-The repeatable `2026-10-07-000002_AddPasswordToExistingUsers` migration adds the
-`users.password` column to a TFA3 database. The seeder creates a password hash
-with PHP `password_hash()` for the demo user and repairs any existing user rows
-whose password is empty. It never stores or prints the password itself. Set a
-new `TFA4_DEMO_PASSWORD` before reseeding if local credentials need to change.
+Passwords are generated with PHP `password_hash()` and checked with
+`password_verify()`. No password hashes are selected for the public profile.
+To change the demo password, change `TFA4_DEMO_PASSWORD` locally and run:
 
-The public pages are `/login` and `/about`. The current checkout has one
-user-account route, `/profile`, protected by the `auth` filter. `/logout` is a
-protected POST action and destroys the session. A failed login always displays
-the generic message “The username or password is incorrect.” On success the
-session ID is regenerated and only the user id, username, and display name are
-stored in the session. Requests to `/profile` preserve their original path and
-return there after login.
+```powershell
+php spark demo:password
+# If SQLite is not enabled globally:
+php -d extension=sqlite3 spark demo:password
+```
 
-To log in locally, use the username `demo.student` and the value you set for
-`TFA4_DEMO_PASSWORD`. Use the **Log out** POST control in the authenticated
-header. This credential is for local assessment use only; change it by updating
-`.env` and rerunning the seeder, or by adding a user through the project’s data
-layer with `password_hash()`.
+Reseeding alone intentionally does not rotate an existing password. Do not put
+real passwords in command arguments, source files, screenshots, or submissions.
+Login regenerates the session ID and stores only the user's ID, username and
+name. Invalid credentials receive a generic error. POST logout clears and
+destroys the session and redirects to login.
 
-## Pages and data flow
+## Routes and behavior
 
-| Route | Controller | Data |
+| Method | Route | Access / behavior |
 | --- | --- | --- |
-| `/` | `Home` | `TaskModel::forDate()` for today in `app.appTimezone` |
-| `/tasks` | `Tasks` | All tasks, ordered by `task_date ASC, id ASC` |
-| `/profile` | `Profile` | One database user with username `demo.student` |
-| `/about` | `About` | Static student/developer and assessment information |
+| GET | `/` | Public; today's non-archived tasks |
+| GET | `/tasks` | Public; non-archived tasks ordered by date, then ID |
+| GET | `/profile` | Public; demo user profile only |
+| GET | `/about` | Public; static project information |
+| GET, POST | `/login` | Public; demo login |
+| POST | `/logout` | Authenticated; end session |
+| GET | `/tasks/new` | Authenticated; new task form |
+| POST | `/tasks/create` | Authenticated; insert task |
+| GET | `/tasks/{id}/edit` | Authenticated; prefilled form |
+| POST | `/tasks/{id}/update` | Authenticated; update task |
+| POST | `/tasks/{id}/archive` | Authenticated; set `is_archived = 1` |
 
-The default timezone is **Asia/Manila** and can be overridden in `.env`.
-Controllers call models; views render escaped values and never query the database.
-The migration creates `tasks` and `users` with the required fields, lengths,
-non-null columns, pending status default, primary keys, and unique username.
-It supports MySQL/MariaDB and SQLite through CodeIgniter's database forge.
-
-The seeder creates one demo user (`demo.student`, Demo Student,
-`student@example.com`) and eight tasks relative to the date when first seeded:
-four today, two tomorrow, and two the following day. It fills an empty task table
-and creates a missing demo account independently, without overwriting existing
-records or duplicating data on reruns. Seeded dates stay fixed afterward; the
-Welcome page always follows the actual current day, so it may later be empty.
-The TFA4 authentication workflow protects the existing user profile without
-altering the task listing, validation, or existing escaped views. This checkout
-does not contain the customer-account or user CRUD/avatar routes referenced by
-the supplied POS activity brief; no such routes were available to protect.
+Management controls appear only while logged in. Both forms require a title
+(maximum 150 characters) and a valid date; status is pending or completed.
+Validation errors retain entered values. Missing or archived tasks return 404.
+Archiving retains the database row and removes it from both public lists;
+completed tasks remain visible until archived. Controllers use Models and Query
+Builder; views escape values and do not query the database. Automatic routing
+is disabled, all forms include CSRF tokens, and all mutations use explicit POST
+routes (no method spoofing is needed). Requests with invalid CSRF tokens are
+rejected before route authentication; valid logged-out management requests
+redirect to login.
 
 ## Verification
 
 ```powershell
+composer validate --strict
 php -d extension=sqlite3 vendor/bin/phpunit --no-coverage
-php spark routes
+php -d extension=sqlite3 spark routes
+php -d extension=sqlite3 spark migrate:status
 ```
 
-The test suite includes password hash/verification behavior, generic login
-failures, login redirect/session behavior, protected profile access, CSRF-aware
-logout routing, migration/seeder compatibility, and the existing TFA3 checks.
+Tests use an isolated in-memory SQLite database. They cover public pages,
+protected management routes, valid/invalid login, logout, creation, prefilled
+editing, required fields, invalid dates/statuses, missing IDs, CSRF rejection,
+POST-only mutations, soft archive row retention and visibility, stable ordering,
+timezone boundaries, escaped output, and repeatable migrations/seeding.
 
-## Assessment submission
+## Database export and submission
 
-The student must still submit the GitHub repository URL and a separately hosted
-working application URL required by the activity. This implementation does not
-claim to publish or deploy either resource; hosting credentials and deployment
-authorization were not available in the workspace.
+Migrations plus the environment-driven seeder are the repeatable database setup;
+no live database or credential hash is committed. For a private MySQL export:
 
-Tests use an isolated in-memory SQLite database and cover the Manila midnight
-boundary, stable ordering, the single demo profile, repeatable seeding, empty
-states, HTML escaping, and the About page. They do not modify the local database.
+```powershell
+mysqldump -u YOUR_DB_USER -p --single-transaction --result-file=build/tasks_today.sql tasks_today
+```
+
+The command prompts for the database password. Alternatively use phpMyAdmin's
+Export tab. For SQLite, stop the application and copy the database into a private
+backup directory. Keep exports private: they contain password hashes. `build/`
+and local SQLite databases are ignored by Git. For a public schema-only MySQL
+export, add `--no-data` and use the seeder to create the demo account locally.
+
+Repository submission: https://github.com/Nathanielnaw/TSA2
+
+The student still needs a hosted application URL. Configure PHP hosting and its
+database, install production dependencies (`composer install --no-dev`), set
+private environment values, migrate/seed, and verify login and CRUD over HTTPS.
+Submit the repository and hosted URL through the assessment portal. Hosting has
+not been deployed by this implementation; no hosting destination or credentials
+were supplied. Share assessment login credentials only through a private channel.
 
 ---
-
 # CodeIgniter 4 Framework
 
 ## What is CodeIgniter?

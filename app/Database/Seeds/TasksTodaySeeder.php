@@ -10,7 +10,7 @@ class TasksTodaySeeder extends Seeder
 {
     public function run()
     {
-        $demoPassword = (string) env('TFA4_DEMO_PASSWORD', ENVIRONMENT === 'testing' ? 'test-password' : '');
+        $demoPassword = (string) env('TFA4_DEMO_PASSWORD', ENVIRONMENT === 'testing' ? bin2hex(random_bytes(24)) : '');
         if ($demoPassword === '') {
             throw new RuntimeException('Set TFA4_DEMO_PASSWORD before running TasksTodaySeeder.');
         }
@@ -30,9 +30,9 @@ class TasksTodaySeeder extends Seeder
             ]);
         }
 
-        // TFA3 accounts may predate the password column. Repair only accounts
-        // without a hash; existing credentials and profile data are preserved.
-        foreach ($this->db->table('users')->select('id, password')->get()->getResultArray() as $user) {
+        // Repair only the demo account if it predates the password column.
+        // Other accounts and existing credentials/profile data are preserved.
+        foreach ($this->db->table('users')->select('id, password')->where('username', 'demo.student')->get()->getResultArray() as $user) {
             if (empty($user['password'])) {
                 $this->db->table('users')->where('id', $user['id'])->update([
                     'password' => password_hash($demoPassword, PASSWORD_DEFAULT),

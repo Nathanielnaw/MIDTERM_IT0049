@@ -25,6 +25,12 @@ class AddPasswordToExistingUsers extends Migration
     public function down()
     {
         if ($this->db->fieldExists('password', 'users')) {
+            // Native SQLite DROP avoids rebuilding the unique username index.
+            if ($this->db->DBDriver === 'SQLite3' && version_compare($this->db->getVersion(), '3.35', '>=')) {
+                $this->db->query('ALTER TABLE ' . $this->db->protectIdentifiers($this->db->prefixTable('users')) . ' DROP COLUMN password');
+                $this->db->resetDataCache();
+                return;
+            }
             $this->forge->dropColumn('users', 'password');
         }
     }

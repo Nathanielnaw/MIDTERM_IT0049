@@ -50,6 +50,7 @@ class Auth extends BaseController
 
     public function logout()
     {
+        session()->remove(array_keys(session()->get()));
         session()->destroy();
 
         return redirect()->to(site_url('login'));
@@ -57,7 +58,7 @@ class Auth extends BaseController
 
     private function safeRedirect(string $redirect): string
     {
-        return $redirect !== '' && str_starts_with($redirect, '/') && ! str_starts_with($redirect, '//')
+        return preg_match('~^/(?:tasks(?:/new|/[0-9]+/edit)?|profile)?$~D', $redirect) === 1
             ? $redirect
             : site_url('/');
     }

@@ -18,11 +18,13 @@
         <?php endforeach; ?>
     </nav>
     <div class="sidebar-note"><span class="note-star" aria-hidden="true">✳</span><p>One task at a time.</p><small>Make room for what matters.<br>A focused day starts here.</small></div>
-    <div class="sidebar-footer"><span class="tiny-dot" aria-hidden="true"></span> IT0049 · Assessment 1</div>
+    <div class="sidebar-footer"><span class="tiny-dot" aria-hidden="true"></span> IT0049 · Assessment 2</div>
 </aside>
 <div class="workspace">
-    <header class="topbar"><span>My workspace <span class="breadcrumb">/</span> <strong><?= esc($title === 'Tasks for Today' ? 'Today' : $title) ?></strong></span><?php $authUser = session()->get('auth_user'); ?><?php if ($authUser !== null): ?><span class="account-link"><?= esc($authUser['full_name']) ?> <span class="avatar avatar-small" aria-hidden="true"><?= esc(mb_strtoupper(mb_substr($authUser['full_name'], 0, 1))) ?></span></span><form method="post" action="<?= esc(site_url('logout'), 'attr') ?>" class="logout-form"><?= csrf_field() ?><button type="submit">Log out</button></form><?php endif; ?></header>
-    <main id="main" tabindex="-1"><?= $this->renderSection('content') ?></main>
+    <header class="topbar"><span>My workspace <span class="breadcrumb">/</span> <strong><?= esc($title === 'Tasks for Today' ? 'Today' : $title) ?></strong></span><?php $authUser = session()->get('auth_user'); ?><?php if ($authUser !== null): ?><span class="account-link"><?= esc($authUser['full_name']) ?> <span class="avatar avatar-small" aria-hidden="true"><?= esc(mb_strtoupper(mb_substr($authUser['full_name'], 0, 1))) ?></span></span><form method="post" action="<?= esc(site_url('logout'), 'attr') ?>" class="logout-form"><?= csrf_field() ?><button type="submit">Log out</button></form><?php else: ?><a class="text-link" href="<?= esc(site_url('login'), 'attr') ?>">Log in</a><?php endif; ?></header>
+    <main id="main" tabindex="-1"><?php if (session()->getFlashdata('message')): ?><p class="notice" role="status"><?= esc(session()->getFlashdata('message')) ?></p><?php endif; ?>
+<?php if ($authUser !== null): ?><p><a class="text-link" href="<?= esc(site_url('tasks/new'), 'attr') ?>">+ New Task</a></p><?php endif; ?>
+<?= $this->renderSection('content') ?></main>
     <footer class="page-footer"><span>Tasks for Today Management System</span><span>Built with CodeIgniter 4</span></footer>
 </div>
 </body>

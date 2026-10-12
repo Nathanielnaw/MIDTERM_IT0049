@@ -150,7 +150,7 @@ final class TasksTodayTest extends CIUnitTestCase
         $result = $this->get('/about');
         $result->assertStatus(200);
         $result->assertSee('Alfred Nathaniel Embuscado');
-        $result->assertSee('IT0049 Technical Summative Assessment 1');
+        $result->assertSee('IT0049 Technical Summative Assessment 2');
         $html = html_entity_decode($result->response()->getBody(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $this->assertMatchesRegularExpression('/href="[^"]*\/about" aria-current="page"/', $html);
     }
